@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARTEC STORE · Calculadora precio ML</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+    min-height: 100vh;
+    padding: 20px;
+    color: #e2e8f0;
+  }
+  .container {
+    max-width: 720px;
+    margin: 0 auto;
+    background: #1e293b;
+    border-radius: 16px;
+    padding: 32px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    border: 1px solid #334155;
+  }
+  .brand {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .brand img {
+    height: 110px;
+    width: auto;
+    object-fit: contain;
+  }
+  .subtitle { color: #e2e8f0; font-size: 18px; font-weight: 700; margin-bottom: 24px; text-align: center; }
+  .input-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+  .input-grid .full { grid-column: 1 / -1; }
+  .field { display: flex; flex-direction: column; }
+  label {
+    font-size: 13px;
+    color: #cbd5e1;
+    margin-bottom: 6px;
+    font-weight: 500;
+  }
+  input, select {
+    background: #0f172a;
+    border: 1px solid #334155;
+    color: #f1f5f9;
+    padding: 12px 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border-color 0.15s;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+  }
+  select {
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fbbf24' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    background-size: 16px;
+    padding-right: 40px;
+    cursor: pointer;
+  }
+  input:focus, select:focus, button:focus {
+    outline: none;
+    border-color: #fbbf24;
+  }
+  input[readonly] { opacity: 0.85; cursor: not-allowed; }
+  .hint { font-size: 11px; color: #64748b; margin-top: 4px; }
+  .tc-display {
+    background: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+    padding: 10px 14px;
+  }
+  .tc-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .tc-label {
+    font-size: 12px;
+    color: #94a3b8;
+    flex: 1;
+  }
+  .tc-value {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fbbf24;
+  }
+  #refreshTc {
+    background: transparent;
+    border: 1px solid #334155;
+    color: #fbbf24;
+    border-radius: 6px;
+    padding: 4px 10px;
+    cursor: pointer;
+    font-size: 14px;
+  }
+  #refreshTc:hover { background: #1e293b; }
+  .result-card {
+    background: linear-gradient(135deg, #fbbf24 0%, #f59e0b 100%);
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 16px;
+    color: #0f172a;
+  }
+  .result-label {
+    font-size: 13px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    opacity: 0.8;
+  }
+  .result-value {
+    font-size: 36px;
+    font-weight: 700;
+    margin-top: 4px;
+  }
+  .result-sub {
+    font-size: 13px;
+    margin-top: 6px;
+    opacity: 0.75;
+  }
+  .cuotas-card {
+    background: #0f172a;
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 20px;
+    border: 1px solid #334155;
+  }
+  .cuotas-card h3 {
+    font-size: 13px;
+    color: #fbbf24;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .cuotas-card .mini-note {
+    font-size: 11px;
+    color: #64748b;
+    margin-bottom: 10px;
+  }
+  .cuota-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    padding: 10px 0;
+    border-bottom: 1px solid #1e293b;
+    font-size: 14px;
+  }
+  .cuota-row:last-child { border-bottom: none; }
+  .cuota-desc { color: #cbd5e1; }
+  .cuota-desc .tag {
+    font-size: 10px;
+    background: #1e40af;
+    color: #dbeafe;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+    font-weight: 600;
+    letter-spacing: 0.3px;
+  }
+  .cuota-price { color: #fbbf24; font-weight: 600; font-size: 16px; }
+  .breakdown {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 18px;
+    border: 1px solid #334155;
+    margin-bottom: 16px;
+  }
+  .breakdown h3 {
+    font-size: 13px;
+    color: #fbbf24;
+    margin-bottom: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .row {
+    display: flex;
+    justify-content: space-between;
+    padding: 8px 0;
+    font-size: 14px;
+    border-bottom: 1px solid #1e293b;
+  }
+  .row:last-child { border-bottom: none; }
+  .row.rent { color: #86efac; font-weight: 600; }
+  .row.total {
+    border-top: 1px solid #334155;
+    margin-top: 6px;
+    padding-top: 12px;
+    font-weight: 600;
+    color: #fbbf24;
+  }
+  .label-muted { color: #94a3b8; }
+  .value { color: #e2e8f0; font-weight: 500; }
+  .alert {
+    background: #7f1d1d;
+    border: 1px solid #b91c1c;
+    color: #fecaca;
+    padding: 10px 14px;
+    border-radius: 8px;
+    font-size: 13px;
+    margin-bottom: 16px;
+    display: none;
+  }
+  .alert.show { display: block; }
+  .params-info {
+    background: #0f172a;
+    border-radius: 10px;
+    padding: 16px;
+    border: 1px solid #334155;
+    font-size: 12px;
+    color: #94a3b8;
+    line-height: 1.6;
+  }
+  .params-info strong { color: #cbd5e1; }
+  @media (max-width: 600px) {
+    .input-grid { grid-template-columns: 1fr; }
+    .container { padding: 20px; }
+    .result-value { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="brand">
+    <img src="https://acdn-us.mitiendanube.com/stores/005/716/886/themes/common/logo-2120780096-1737394992-2eb8f32324e4b40490c3189d74e3c12a1737394992-320-0.webp" alt="ARTEC STORE logo">
+  </div>
+  <p class="subtitle">Calculadora de precio de venta · Mercado Libre</p>
+
+  <div class="input-grid">
+    <div class="field full">
+      <label>Costo en USD (IVA incluido)</label>
+      <input type="number" id="costUsd" step="0.01" placeholder="Ej: 25.50" value="25">
+    </div>
+
+    <div class="field full tc-display">
+      <div class="tc-line">
+        <span class="tc-label">Tipo de cambio · Dólar Blue (venta)</span>
+        <span class="tc-value">$ <span id="tcShown">1400</span></span>
+        <button type="button" id="refreshTc" title="Actualizar cotización">↻</button>
+      </div>
+      <span class="hint" id="tcStatus">Cargando cotización…</span>
+      <input type="hidden" id="tc" value="1400">
+    </div>
+
+    <div class="field full">
+      <label>Rentabilidad buscada (neta s/IVA)</label>
+      <select id="rentSelect">
+        <option value="0.05">5%</option>
+        <option value="0.10" selected>10%</option>
+        <option value="0.15">15%</option>
+        <option value="0.20">20%</option>
+        <option value="0.25">25%</option>
+        <option value="0.30">30%</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="alert" id="alertMin">⚠️ El precio de venta quedó por debajo del mínimo permitido en ML ($1.000 general · $3.500 consumo masivo).</div>
+
+  <div class="result-card">
+    <div class="result-label">Precio de venta sugerido (contado)</div>
+    <div class="result-value" id="pvFinal">$ 0</div>
+  </div>
+
+  <div class="cuotas-card">
+    <h3 id="cuotasTitle">Precios en cuotas (manteniendo 10% rent. neta)</h3>
+    <div class="mini-note">Cada precio absorbe el costo de la cuota sin reducir tu rentabilidad. Si cruza los $33.000, se suma el envío estimado de $10.000.</div>
+    <div id="cuotasList"></div>
+  </div>
+
+  <div class="breakdown">
+    <h3>Desglose del cálculo (contado)</h3>
+    <div class="row"><span class="label-muted">Costo producto (ARS, c/IVA)</span><span class="value" id="costoArs">$ 0</span></div>
+    <div class="row"><span class="label-muted" id="costoFijoLabel">Costo fijo ML (c/IVA)</span><span class="value" id="costoFijo">$ 0</span></div>
+    <div class="row"><span class="label-muted" id="envioLabel">Envío estimado (c/IVA)</span><span class="value" id="envioVal">$ 0</span></div>
+    <div class="row"><span class="label-muted">Cargo por vender 15% (c/IVA)</span><span class="value" id="comVal">$ 0</span></div>
+    <div class="row"><span class="label-muted">IIBB 4,5% s/bruto</span><span class="value" id="iibbVal">$ 0</span></div>
+    <div class="row"><span class="label-muted">Percepción IVA 3% s/bruto</span><span class="value" id="percVal">$ 0</span></div>
+    <div class="row"><span class="label-muted">Retención IIBB 2% s/bruto</span><span class="value" id="retVal">$ 0</span></div>
+    <div class="row"><span class="label-muted">IVA neto a AFIP (débito − crédito)</span><span class="value" id="ivaNetoVal">$ 0</span></div>
+    <div class="row rent"><span id="rentLabel">Rentabilidad neta s/IVA (10%)</span><span id="rentVal">$ 0</span></div>
+    <div class="row total"><span>Precio venta final (contado)</span><span id="pvTotal">$ 0</span></div>
+  </div>
+
+  <div class="params-info">
+    <strong>Cargo por vender:</strong> 15% final (IVA 21% incluido).<br>
+    <strong>Costo fijo ML (c/IVA):</strong> hasta $15.999 → $1.255 · $16.000 a $23.999 → $2.500 · $24.000 a $33.000 → $3.030 · ≥ $33.000 → sin costo fijo.<br>
+    <strong>Envío estimado (c/IVA):</strong> $10.000 en publicaciones ≥ $33.000 (envío gratis ML a cargo del vendedor).<br>
+    <strong>Impuestos s/bruto (sin IVA):</strong> IIBB 4,5% · Percepción IVA 3% · Retención IIBB 2%.<br>
+    <strong>Cuotas (c/IVA):</strong> interés bajo 3-12 cuotas 5% · 3 cuotas 8,80% · 6 cuotas 13,30% · 9 cuotas 17,50% · 12 cuotas 21,30%.<br>
+    <strong>Rentabilidad:</strong> neta libre de IVA, calculada sobre el precio neto (PV/1,21). La fórmula considera que las comisiones y costos c/IVA generan crédito fiscal, mientras IIBB/Perc IVA/Ret IIBB son costos efectivos sobre bruto.<br>
+    <strong>Precio mínimo ML:</strong> $1.000 general · $3.500 consumo masivo.
+  </div>
+</div>
+
+<script>
+  const CARGO = 0.15;
+  const IIBB = 0.045;
+  const PERC_IVA = 0.03;
+  const RET_IIBB = 0.02;
+  const IVA = 0.21;
+  const UMBRAL_FIJO = 33000;
+  const ENVIO_ESTIMADO = 10000;
+  const MIN_ML = 1000;
+  const fmt = (n) => '$ ' + Math.round(n).toLocaleString('es-AR');
+
+  const CUOTAS_OPCIONES = [
+    { tasa: 0.05,  label: '3 a 12 cuotas con interés bajo', badge: '5%' },
+    { tasa: 0.088, label: '3 cuotas al mismo precio',       badge: '8,80%' },
+    { tasa: 0.133, label: '6 cuotas al mismo precio',       badge: '13,30%' },
+    { tasa: 0.175, label: '9 cuotas al mismo precio',       badge: '17,50%' },
+    { tasa: 0.213, label: '12 cuotas al mismo precio',      badge: '21,30%' },
+  ];
+
+  function costoFijoFlex(pv) {
+    if (pv >= UMBRAL_FIJO) return 0;
+    if (pv <= 15999) return 1255;
+    if (pv <= 23999) return 2500;
+    return 3030;
+  }
+
+  // Calcula el PV manteniendo rentabilidad R neta libre de IVA.
+  // Razonamiento (todos los ítems con IVA se "netean" dividiendo por 1+IVA;
+  // los impuestos sobre bruto no tienen IVA, equivalen a tasa × 1,21 en neto):
+  //   PV = (CostoArs + CF + Envio) / (1 - 0,15 - cuotas - (0,045+0,03+0,02)·1,21 - R)
+  //   denom = 0,73505 - cuotas - R
+  function calcularPV(costoArs, CUOTAS, R) {
+    const tasaImpuestosEfectiva = (IIBB + PERC_IVA + RET_IIBB) * (1 + IVA);
+    const tasaTotal = CARGO + CUOTAS + tasaImpuestosEfectiva + R;
+    const denom = Math.max(1 - tasaTotal, 0.01);
+
+    let pv = costoArs / denom;
+    let cf = 0, envio = 0;
+    for (let i = 0; i < 30; i++) {
+      cf = costoFijoFlex(pv);
+      envio = pv >= UMBRAL_FIJO ? ENVIO_ESTIMADO : 0;
+      const nuevoPV = (costoArs + cf + envio) / denom;
+      if (Math.abs(nuevoPV - pv) < 0.5) { pv = nuevoPV; break; }
+      pv = nuevoPV;
+    }
+    cf = costoFijoFlex(pv);
+    envio = pv >= UMBRAL_FIJO ? ENVIO_ESTIMADO : 0;
+    return { pv, cf, envio };
+  }
+
+  function calcular() {
+    const costUsd = parseFloat(document.getElementById('costUsd').value) || 0;
+    const tc = parseFloat(document.getElementById('tc').value) || 0;
+    const R = parseFloat(document.getElementById('rentSelect').value) || 0;
+    const rentPct = Math.round(R * 100);
+    const costoArs = costUsd * tc;
+
+    // Precio contado (cuotas = 0)
+    const { pv, cf, envio } = calcularPV(costoArs, 0, R);
+    const pvNeto = pv / (1 + IVA);
+
+    // IVA débito − crédito (lo que efectivamente se paga al AFIP)
+    const q = IVA / (1 + IVA); // 0,1736
+    const ivaDebito = pv * q;
+    const ivaCredito = (pv * CARGO + cf + envio + costoArs) * q;
+    const ivaNeto = ivaDebito - ivaCredito;
+
+    document.getElementById('pvFinal').textContent = fmt(pv);
+    document.getElementById('costoArs').textContent = fmt(costoArs);
+    document.getElementById('costoFijo').textContent = cf === 0 ? '— (≥ $33.000)' : fmt(cf);
+    document.getElementById('envioVal').textContent = envio === 0 ? '— (< $33.000)' : fmt(envio);
+    document.getElementById('comVal').textContent = fmt(pv * CARGO);
+    document.getElementById('iibbVal').textContent = fmt(pv * IIBB);
+    document.getElementById('percVal').textContent = fmt(pv * PERC_IVA);
+    document.getElementById('retVal').textContent = fmt(pv * RET_IIBB);
+    document.getElementById('ivaNetoVal').textContent = fmt(ivaNeto);
+    document.getElementById('rentVal').textContent = fmt(pvNeto * R);
+    document.getElementById('rentLabel').textContent = `Rentabilidad neta s/IVA (${rentPct}%)`;
+    document.getElementById('pvTotal').textContent = fmt(pv);
+
+    // Tabla de cuotas
+    document.getElementById('cuotasTitle').textContent = `Precios en cuotas (manteniendo ${rentPct}% rent. neta)`;
+    const lista = document.getElementById('cuotasList');
+    lista.innerHTML = '';
+    CUOTAS_OPCIONES.forEach(op => {
+      const r = calcularPV(costoArs, op.tasa, R);
+      const extra = r.envio > 0 ? ' <span class="tag" style="background:#7c2d12;color:#fed7aa;">+envío $10k</span>' : '';
+      const html = `
+        <div class="cuota-row">
+          <div class="cuota-desc">${op.label} <span class="tag">${op.badge}</span>${extra}</div>
+          <div class="cuota-price">${fmt(r.pv)}</div>
+        </div>`;
+      lista.insertAdjacentHTML('beforeend', html);
+    });
+
+    const alertEl = document.getElementById('alertMin');
+    if (pv > 0 && pv < MIN_ML) alertEl.classList.add('show');
+    else alertEl.classList.remove('show');
+  }
+
+  // ----- Cotización automática: Dólar Blue venta (dolarapi.com) -----
+  const tcInput = document.getElementById('tc');
+  const tcStatus = document.getElementById('tcStatus');
+  const refreshBtn = document.getElementById('refreshTc');
+
+  const tcShown = document.getElementById('tcShown');
+
+  async function cargarCotizacion() {
+    tcStatus.textContent = 'Cargando cotización…';
+    try {
+      const res = await fetch('https://dolarapi.com/v1/dolares/blue', { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      const data = await res.json();
+      const venta = data.venta;
+      if (!venta) throw new Error('Sin valor de venta');
+      const v = Math.round(venta);
+      tcInput.value = v;
+      tcShown.textContent = v.toLocaleString('es-AR');
+      const fecha = data.fechaActualizacion ? new Date(data.fechaActualizacion) : null;
+      const fechaFmt = fecha ? fecha.toLocaleString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' }) : 's/d';
+      tcStatus.textContent = `Actualizado ${fechaFmt}`;
+      calcular();
+    } catch (err) {
+      tcStatus.textContent = '⚠️ No se pudo obtener la cotización del Blue.';
+    }
+  }
+
+  refreshBtn.addEventListener('click', cargarCotizacion);
+
+  document.querySelectorAll('input, select').forEach(el => {
+    el.addEventListener('input', calcular);
+    el.addEventListener('change', calcular);
+  });
+  cargarCotizacion();
+  calcular();
+</script>
+</body>
+</html>
