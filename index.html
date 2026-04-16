@@ -183,6 +183,17 @@
     text-transform: uppercase;
     letter-spacing: 0.5px;
   }
+  .section-title {
+    font-size: 11px;
+    color: #64748b;
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    padding-bottom: 4px;
+    border-bottom: 1px dashed #334155;
+    font-weight: 600;
+  }
   .row {
     display: flex;
     justify-content: space-between;
@@ -222,10 +233,48 @@
     line-height: 1.6;
   }
   .params-info strong { color: #cbd5e1; }
-  @media (max-width: 600px) {
-    .input-grid { grid-template-columns: 1fr; }
-    .container { padding: 20px; }
-    .result-value { font-size: 28px; }
+  @media (max-width: 640px) {
+    body { padding: 12px; }
+    .container { padding: 18px 16px; border-radius: 14px; }
+    .input-grid { grid-template-columns: 1fr; gap: 12px; margin-bottom: 18px; }
+    .brand img { height: 84px; }
+    .subtitle { font-size: 15px; margin-bottom: 18px; }
+    .result-card { padding: 18px; }
+    .result-value { font-size: 26px; letter-spacing: -0.5px; }
+    .result-label { font-size: 11px; }
+    .cuotas-card { padding: 14px 16px; }
+    .cuotas-card h3 { font-size: 12px; }
+    .cuotas-card .mini-note { font-size: 10px; line-height: 1.4; }
+    .cuota-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+      padding: 10px 0;
+    }
+    .cuota-desc { font-size: 13px; line-height: 1.3; }
+    .cuota-price { font-size: 17px; }
+    .breakdown { padding: 14px 16px; }
+    .breakdown h3 { font-size: 12px; }
+    .row { font-size: 13px; padding: 7px 0; gap: 8px; }
+    .label-muted { font-size: 13px; }
+    .params-info { padding: 14px; font-size: 11px; line-height: 1.5; }
+    input, select {
+      font-size: 16px; /* evita zoom en iOS */
+      padding: 11px 12px;
+    }
+    label { font-size: 12px; }
+    .hint { font-size: 10px; }
+    .tc-display { padding: 10px 12px; }
+    .tc-label { font-size: 11px; }
+    .tc-value { font-size: 16px; }
+    .cuota-desc .tag { font-size: 9px; padding: 2px 5px; }
+    .alert { font-size: 12px; padding: 9px 12px; }
+  }
+  @media (max-width: 380px) {
+    .container { padding: 14px 12px; }
+    .brand img { height: 70px; }
+    .result-value { font-size: 22px; }
+    h3 { font-size: 11px; }
   }
 </style>
 </head>
@@ -281,13 +330,18 @@
   <div class="breakdown">
     <h3>Desglose del cálculo (contado)</h3>
     <div class="row"><span class="label-muted">Costo producto (ARS, c/IVA)</span><span class="value" id="costoArs">$ 0</span></div>
+
+    <div class="section-title">Gastos de Mercado Libre</div>
     <div class="row"><span class="label-muted" id="costoFijoLabel">Costo fijo ML (c/IVA)</span><span class="value" id="costoFijo">$ 0</span></div>
     <div class="row"><span class="label-muted" id="envioLabel">Envío estimado (c/IVA)</span><span class="value" id="envioVal">$ 0</span></div>
     <div class="row"><span class="label-muted">Cargo por vender 15% (c/IVA)</span><span class="value" id="comVal">$ 0</span></div>
+
+    <div class="section-title">Impuestos y retenciones</div>
     <div class="row"><span class="label-muted">IIBB 4,5% s/bruto</span><span class="value" id="iibbVal">$ 0</span></div>
-    <div class="row"><span class="label-muted">Percepción IVA 3% s/bruto</span><span class="value" id="percVal">$ 0</span></div>
-    <div class="row"><span class="label-muted">Retención IIBB 2% s/bruto</span><span class="value" id="retVal">$ 0</span></div>
-    <div class="row"><span class="label-muted">IVA neto a AFIP (débito − crédito)</span><span class="value" id="ivaNetoVal">$ 0</span></div>
+    <div class="row"><span class="label-muted">Percep. y retenc. ML 5% (IVA + IIBB + Ganancias)</span><span class="value" id="percRetMlVal">$ 0</span></div>
+    <div class="row"><span class="label-muted">Impuesto al crédito 0,6% s/bruto</span><span class="value" id="impCreditoVal">$ 0</span></div>
+    <div class="row"><span class="label-muted">IVA a pagar</span><span class="value" id="ivaNetoVal">$ 0</span></div>
+
     <div class="row rent"><span id="rentLabel">Rentabilidad neta s/IVA (10%)</span><span id="rentVal">$ 0</span></div>
     <div class="row total"><span>Precio venta final (contado)</span><span id="pvTotal">$ 0</span></div>
   </div>
@@ -296,7 +350,8 @@
     <strong>Cargo por vender:</strong> 15% final (IVA 21% incluido).<br>
     <strong>Costo fijo ML (c/IVA):</strong> hasta $15.999 → $1.255 · $16.000 a $23.999 → $2.500 · $24.000 a $33.000 → $3.030 · ≥ $33.000 → sin costo fijo.<br>
     <strong>Envío estimado (c/IVA):</strong> $10.000 en publicaciones ≥ $33.000 (envío gratis ML a cargo del vendedor).<br>
-    <strong>Impuestos s/bruto (sin IVA):</strong> IIBB 4,5% · Percepción IVA 3% · Retención IIBB 2%.<br>
+    <strong>Impuestos s/bruto (sin IVA):</strong> IIBB 4,5% · Percep. y retenc. ML 5% (IVA + IIBB + Ganancias) · Impuesto al crédito 0,6%.<br>
+    <em style="color:#fbbf24;">Nota:</em> las percepciones y retenciones de ML no son técnicamente un costo (son anticipos que se recuperan contra impuestos futuros), pero como la mayoría de vendedores de ML mantienen saldos a favor permanentes y difíciles de recuperar, se computan como costo efectivo para el cálculo de rentabilidad.<br>
     <strong>Cuotas (c/IVA):</strong> interés bajo 3-12 cuotas 5% · 3 cuotas 8,80% · 6 cuotas 13,30% · 9 cuotas 17,50% · 12 cuotas 21,30%.<br>
     <strong>Rentabilidad:</strong> neta libre de IVA, calculada sobre el precio neto (PV/1,21). La fórmula considera que las comisiones y costos c/IVA generan crédito fiscal, mientras IIBB/Perc IVA/Ret IIBB son costos efectivos sobre bruto.<br>
     <strong>Precio mínimo ML:</strong> $1.000 general · $3.500 consumo masivo.
@@ -305,9 +360,9 @@
 
 <script>
   const CARGO = 0.15;
-  const IIBB = 0.045;
-  const PERC_IVA = 0.03;
-  const RET_IIBB = 0.02;
+  const IIBB = 0.045;              // provincial, s/bruto
+  const PERC_RET_ML = 0.05;        // percepciones y retenciones de ML (IVA + IIBB + Ganancias), s/bruto
+  const IMP_CREDITO = 0.006;       // impuesto al crédito (0,6%) s/bruto
   const IVA = 0.21;
   const UMBRAL_FIJO = 33000;
   const ENVIO_ESTIMADO = 10000;
@@ -335,7 +390,7 @@
   //   PV = (CostoArs + CF + Envio) / (1 - 0,15 - cuotas - (0,045+0,03+0,02)·1,21 - R)
   //   denom = 0,73505 - cuotas - R
   function calcularPV(costoArs, CUOTAS, R) {
-    const tasaImpuestosEfectiva = (IIBB + PERC_IVA + RET_IIBB) * (1 + IVA);
+    const tasaImpuestosEfectiva = (IIBB + PERC_RET_ML + IMP_CREDITO) * (1 + IVA);
     const tasaTotal = CARGO + CUOTAS + tasaImpuestosEfectiva + R;
     const denom = Math.max(1 - tasaTotal, 0.01);
 
@@ -376,8 +431,8 @@
     document.getElementById('envioVal').textContent = envio === 0 ? '— (< $33.000)' : fmt(envio);
     document.getElementById('comVal').textContent = fmt(pv * CARGO);
     document.getElementById('iibbVal').textContent = fmt(pv * IIBB);
-    document.getElementById('percVal').textContent = fmt(pv * PERC_IVA);
-    document.getElementById('retVal').textContent = fmt(pv * RET_IIBB);
+    document.getElementById('percRetMlVal').textContent = fmt(pv * PERC_RET_ML);
+    document.getElementById('impCreditoVal').textContent = fmt(pv * IMP_CREDITO);
     document.getElementById('ivaNetoVal').textContent = fmt(ivaNeto);
     document.getElementById('rentVal').textContent = fmt(pvNeto * R);
     document.getElementById('rentLabel').textContent = `Rentabilidad neta s/IVA (${rentPct}%)`;
